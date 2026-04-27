@@ -179,6 +179,6 @@ g++ src/main.cpp -o arbol
 El uso de un **Árbol Binario de Búsqueda (BST)** permite organizar información de manera eficiente y jerárquica, facilitando la búsqueda rápida de empleados.
 Además, la representación por niveles permite visualizar el sistema como un **organigrama empresarial**, reforzando la comprensión de estructuras de datos en aplicaciones reales.
 
-## repositorio
+##  Repositorio
 
-Hola
+**https://github.com/DiegO2255/arbol-bst-empresa-cpp**
