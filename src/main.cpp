@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <queue>
+
 using namespace std;
 
 struct Empleado {
@@ -13,209 +15,216 @@ struct Nodo {
     Nodo* izquierdo;
     Nodo* derecho;
 
-    Nodo(Empleado emp) {
-        dato = emp;
-        izquierdo = nullptr;
-        derecho = nullptr;
-    }
+    Nodo(Empleado emp) : dato(emp), izquierdo(nullptr), derecho(nullptr) {}
 };
 
 class ArbolBST {
 private:
     Nodo* raiz;
 
+    // INSERTAR (BST real)
     Nodo* insertar(Nodo* nodo, Empleado emp) {
-        if (nodo == nullptr) {
-            return new Nodo(emp);
-        }
+        if (nodo == nullptr) return new Nodo(emp);
 
-        if (emp.codigo < nodo->dato.codigo) {
+        if (emp.codigo < nodo->dato.codigo)
             nodo->izquierdo = insertar(nodo->izquierdo, emp);
-        } else if (emp.codigo > nodo->dato.codigo) {
+        else if (emp.codigo > nodo->dato.codigo)
             nodo->derecho = insertar(nodo->derecho, emp);
-        } else {
-            cout << "El codigo ya existe.\n";
-        }
+        else
+            cout << "?? Codigo duplicado, no se inserta.\n";
 
         return nodo;
     }
 
+    // BUSCAR
     Nodo* buscar(Nodo* nodo, int codigo) {
-        if (nodo == nullptr || nodo->dato.codigo == codigo) {
+        if (!nodo || nodo->dato.codigo == codigo)
             return nodo;
-        }
 
-        if (codigo < nodo->dato.codigo) {
+        if (codigo < nodo->dato.codigo)
             return buscar(nodo->izquierdo, codigo);
-        } else {
+        else
             return buscar(nodo->derecho, codigo);
-        }
     }
 
+    // RECORRIDOS
     void inorden(Nodo* nodo) {
-        if (nodo != nullptr) {
+        if (nodo) {
             inorden(nodo->izquierdo);
-            mostrarEmpleado(nodo);
+            mostrar(nodo);
             inorden(nodo->derecho);
         }
     }
 
     void preorden(Nodo* nodo) {
-        if (nodo != nullptr) {
-            mostrarEmpleado(nodo);
+        if (nodo) {
+            mostrar(nodo);
             preorden(nodo->izquierdo);
             preorden(nodo->derecho);
         }
     }
 
     void postorden(Nodo* nodo) {
-        if (nodo != nullptr) {
+        if (nodo) {
             postorden(nodo->izquierdo);
             postorden(nodo->derecho);
-            mostrarEmpleado(nodo);
+            mostrar(nodo);
         }
     }
 
+    // ALTURA
     int altura(Nodo* nodo) {
-        if (nodo == nullptr) {
-            return 0;
-        }
-
-        int alturaIzq = altura(nodo->izquierdo);
-        int alturaDer = altura(nodo->derecho);
-
-        return 1 + max(alturaIzq, alturaDer);
+        if (!nodo) return 0;
+        return 1 + max(altura(nodo->izquierdo), altura(nodo->derecho));
     }
 
-    void mostrarHojas(Nodo* nodo) {
-        if (nodo != nullptr) {
-            if (nodo->izquierdo == nullptr && nodo->derecho == nullptr) {
-                mostrarEmpleado(nodo);
-            }
-            mostrarHojas(nodo->izquierdo);
-            mostrarHojas(nodo->derecho);
+    // HOJAS
+    void hojas(Nodo* nodo) {
+        if (nodo) {
+            if (!nodo->izquierdo && !nodo->derecho)
+                mostrar(nodo);
+
+            hojas(nodo->izquierdo);
+            hojas(nodo->derecho);
         }
     }
 
-    void mostrarEmpleado(Nodo* nodo) {
+    // MOSTRAR EMPLEADO
+    void mostrar(Nodo* nodo) {
         cout << "Codigo: " << nodo->dato.codigo
              << " | Nombre: " << nodo->dato.nombre
              << " | Cargo: " << nodo->dato.cargo << endl;
     }
 
-public:
-    ArbolBST() {
-        raiz = nullptr;
+    // ?? NUEVO: MOSTRAR POR NIVELES (ORGANIGRAMA)
+void mostrarNiveles() {
+    if (!raiz) return;
+
+    queue<Nodo*> cola;
+    cola.push(raiz);
+
+    int nivel = 0;
+
+    while (!cola.empty()) {
+        int size = cola.size();
+
+        cout << "\nNivel " << nivel 
+             << " (" << size << " empleado(s)):\n";
+
+        for (int i = 0; i < size; i++) {
+            Nodo* actual = cola.front();
+            cola.pop();
+
+            cout << " - ";
+            mostrar(actual);
+
+            if (actual->izquierdo) cola.push(actual->izquierdo);
+            if (actual->derecho) cola.push(actual->derecho);
+        }
+
+        nivel++;
     }
+}
+
+public:
+    ArbolBST() : raiz(nullptr) {}
 
     void insertarEmpleado(Empleado emp) {
         raiz = insertar(raiz, emp);
     }
 
     void buscarEmpleado(int codigo) {
-        Nodo* resultado = buscar(raiz, codigo);
-
-        if (resultado != nullptr) {
+        Nodo* res = buscar(raiz, codigo);
+        if (res) {
             cout << "\nEmpleado encontrado:\n";
-            mostrarEmpleado(resultado);
+            mostrar(res);
         } else {
-            cout << "\nEmpleado no encontrado.\n";
+            cout << "\nEmpleado no encontrado\n";
         }
     }
 
     void mostrarRaiz() {
-        if (raiz != nullptr) {
-            cout << "\nRaiz del arbol:\n";
-            mostrarEmpleado(raiz);
+        if (raiz) {
+            cout << "\nRAIZ (Nivel 0):\n";
+            mostrar(raiz);
         } else {
-            cout << "El arbol esta vacio.\n";
+            cout << "Arbol vacio\n";
         }
     }
 
     void mostrarInorden() {
-        cout << "\nRecorrido Inorden:\n";
+        cout << "\nINORDEN:\n";
         inorden(raiz);
     }
 
     void mostrarPreorden() {
-        cout << "\nRecorrido Preorden:\n";
+        cout << "\nPREORDEN:\n";
         preorden(raiz);
     }
 
     void mostrarPostorden() {
-        cout << "\nRecorrido Postorden:\n";
+        cout << "\nPOSTORDEN:\n";
         postorden(raiz);
     }
 
     void mostrarAltura() {
-        cout << "\nAltura del arbol: " << altura(raiz) << endl;
+        cout << "\nAltura: " << altura(raiz) << endl;
     }
 
-    void mostrarNodosHoja() {
-        cout << "\nNodos hoja:\n";
-        mostrarHojas(raiz);
+    void mostrarHojas() {
+        cout << "\nHOJAS:\n";
+        hojas(raiz);
+    }
+
+    void mostrarOrganigrama() {
+        cout << "\n=== ORGANIGRAMA POR NIVELES ===\n";
+        mostrarNiveles();
     }
 };
 
 int main() {
     ArbolBST arbol;
-    int opcion;
+    int op;
 
     do {
-        cout << "\n===== MENU ARBOL BST EMPRESARIAL =====\n";
+        cout << "\n==== MENU BST EMPRESA ====\n";
         cout << "1. Insertar empleado\n";
         cout << "2. Buscar empleado\n";
         cout << "3. Mostrar raiz\n";
-        cout << "4. Recorrido inorden\n";
-        cout << "5. Recorrido preorden\n";
-        cout << "6. Recorrido postorden\n";
-        cout << "7. Mostrar altura\n";
-        cout << "8. Mostrar hojas\n";
+        cout << "4. Mostar Recorrido Inorden\n";
+        cout << "5. Mostar Recorrido Preorden\n";
+        cout << "6. Mostar Recorrido Postorden\n";
+        cout << "7. Mostar Altura\n";
+        cout << "8. Mostar Hojas\n";
+        cout << "9. Mostar Niveles (num Empelados)\n";
         cout << "0. Salir\n";
-        cout << "Seleccione una opcion: ";
-        cin >> opcion;
+        cout << "Opcion: ";
+        cin >> op;
 
-        if (opcion == 1) {
-            Empleado emp;
-            cout << "Codigo: ";
-            cin >> emp.codigo;
+        if (op == 1) {
+            Empleado e;
+            cout << "Codigo: "; cin >> e.codigo;
             cin.ignore();
+            cout << "Nombre: "; getline(cin, e.nombre);
+            cout << "Cargo: "; getline(cin, e.cargo);
 
-            cout << "Nombre: ";
-            getline(cin, emp.nombre);
-
-            cout << "Cargo: ";
-            getline(cin, emp.cargo);
-
-            arbol.insertarEmpleado(emp);
-        } 
-        else if (opcion == 2) {
-            int codigo;
-            cout << "Ingrese codigo a buscar: ";
-            cin >> codigo;
-            arbol.buscarEmpleado(codigo);
-        } 
-        else if (opcion == 3) {
-            arbol.mostrarRaiz();
-        } 
-        else if (opcion == 4) {
-            arbol.mostrarInorden();
-        } 
-        else if (opcion == 5) {
-            arbol.mostrarPreorden();
-        } 
-        else if (opcion == 6) {
-            arbol.mostrarPostorden();
-        } 
-        else if (opcion == 7) {
-            arbol.mostrarAltura();
-        } 
-        else if (opcion == 8) {
-            arbol.mostrarNodosHoja();
+            arbol.insertarEmpleado(e);
         }
+        else if (op == 2) {
+            int c;
+            cout << "Codigo: "; cin >> c;
+            arbol.buscarEmpleado(c);
+        }
+        else if (op == 3) arbol.mostrarRaiz();
+        else if (op == 4) arbol.mostrarInorden();
+        else if (op == 5) arbol.mostrarPreorden();
+        else if (op == 6) arbol.mostrarPostorden();
+        else if (op == 7) arbol.mostrarAltura();
+        else if (op == 8) arbol.mostrarHojas();
+        else if (op == 9) arbol.mostrarOrganigrama();
 
-    } while (opcion != 0);
+    } while (op != 0);
 
     return 0;
 }
-
+//Fin
